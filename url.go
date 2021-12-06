@@ -21,7 +21,7 @@ import (
 )
 
 func FixedURL(rawurl string) (*url.URL, error) {
-	if !strings.HasPrefix(rawurl, "http") || !strings.HasPrefix(rawurl, "https") {
+	if !strings.HasPrefix(rawurl, "http") && !strings.HasPrefix(rawurl, "https") {
 		// Clear scheme connector.
 		if !strings.HasPrefix(rawurl, "://") {
 			rawurl = fmt.Sprintf("://%s", rawurl)

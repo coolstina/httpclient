@@ -59,6 +59,14 @@ func (suite *URLSuite) Test_FixedURL() {
 			url:      "domain",
 			expected: "http://domain",
 		},
+		{
+			url:      "http://10.10.10.7:2379",
+			expected: "http://10.10.10.7:2379",
+		},
+		{
+			url:      "https://127.0.0.1:2379",
+			expected: "https://127.0.0.1:2379",
+		},
 	}
 
 	for _, grid := range grids {
