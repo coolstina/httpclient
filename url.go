@@ -21,13 +21,12 @@ import (
 )
 
 func FixedURL(rawurl string) (*url.URL, error) {
-	// Clear scheme connector.
-	if strings.HasPrefix(rawurl, "://") {
-		rawurl = strings.TrimPrefix(rawurl, "://")
-	}
-
 	if !strings.HasPrefix(rawurl, "http") || !strings.HasPrefix(rawurl, "https") {
-		rawurl = fmt.Sprintf("http://%s", rawurl)
+		// Clear scheme connector.
+		if !strings.HasPrefix(rawurl, "://") {
+			rawurl = fmt.Sprintf("://%s", rawurl)
+		}
+		rawurl = fmt.Sprintf("http%s", rawurl)
 	}
 
 	parse, err := url.Parse(rawurl)

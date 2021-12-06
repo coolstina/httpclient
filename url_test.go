@@ -31,7 +31,39 @@ type URLSuite struct {
 }
 
 func (suite *URLSuite) Test_FixedURL() {
-	url, err := FixedURL("://localhost:8000/users/id/22?username=helloshaohua&sex=male")
-	assert.NoError(suite.T(), err)
-	assert.NotNil(suite.T(), url)
+	grids := []struct {
+		url      string
+		expected string
+	}{
+		{
+			url:      "://localhost:8000/users/id/22?username=helloshaohua&sex=male",
+			expected: "http://localhost:8000/users/id/22?username=helloshaohua&sex=male",
+		},
+		{
+			url:      "127.0.0.1:9200",
+			expected: "http://127.0.0.1:9200",
+		},
+		{
+			url:      "a.com:9200",
+			expected: "http://a.com:9200",
+		},
+		{
+			url:      "localhost:9200",
+			expected: "http://localhost:9200",
+		},
+		{
+			url:      "https://www.baidu.com/?q=hello+world",
+			expected: "https://www.baidu.com/?q=hello+world",
+		},
+		{
+			url:      "domain",
+			expected: "http://domain",
+		},
+	}
+
+	for _, grid := range grids {
+		actual, err := FixedURL(grid.url)
+		assert.NoError(suite.T(), err)
+		assert.Equal(suite.T(), grid.expected, actual.String())
+	}
 }
