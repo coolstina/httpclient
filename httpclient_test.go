@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/coolstina/httpclient/test/server"
 
@@ -120,4 +121,22 @@ func (suite *HttpClientSuite) Test_AddUsers_With_BodyWithJSON() {
 	actual, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(suite.T(), err)
 	assert.NotEmpty(suite.T(), actual)
+}
+
+func Test_AddUsers_With_Timeout_True(t *testing.T) {
+	url := `http://httpbin.org/get`
+	resp, err := Get(url).Debug(true).Timeout(time.Duration(time.Millisecond * 80)).Do()
+	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_AddUsers_With_Timeout_False(t *testing.T) {
+	url := `http://httpbin.org/get`
+	resp, err := Get(url).Debug(true).Timeout(time.Duration(time.Millisecond * 800)).Do()
+	assert.NoError(t, err)
+	defer resp.Body.Close()
+
+	actual, err := ioutil.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, actual)
 }

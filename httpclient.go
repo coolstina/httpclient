@@ -15,12 +15,14 @@
 package httpclient
 
 import (
+	"context"
 	"crypto/tls"
 	"io"
 	"log"
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 )
 
 var client *HttpClient
@@ -30,11 +32,15 @@ type HttpClient struct {
 	client      *http.Client
 	transport   *http.Transport
 	method      string
+	timeout     time.Duration
 	url         string
 	body        io.Reader // Use POST/PUT/DELETE
 	queryParams Params
 	debug       bool
 	mux         sync.Mutex
+
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func NewHttpClientOr() *HttpClient {
@@ -93,6 +99,14 @@ func (cli *HttpClient) QueryParams(params Params) *HttpClient {
 	return cli
 }
 
+func (cli *HttpClient) Timeout(wait time.Duration) *HttpClient {
+	cli.mux.Lock()
+	defer cli.mux.Unlock()
+
+	cli.timeout = wait
+	return cli
+}
+
 func (cli *HttpClient) InsecureSkipVerify(skip bool) *HttpClient {
 	cli.mux.Lock()
 	defer cli.mux.Unlock()
@@ -139,6 +153,12 @@ func (cli *HttpClient) Do() (*http.Response, error) {
 	// Show debug information.
 	cli.showDebug(req)
 
+	// Use timeout.
+	req = cli.useTimeout(req)
+	if cli.cancel != nil {
+		defer cli.cancel()
+	}
+
 	// Execute http request.
 	resp, err := cli.client.Do(req)
 	if err != nil {
@@ -170,6 +190,14 @@ func (cli *HttpClient) showDebug(req *http.Request) {
 	if cli.debug {
 		log.Printf("fill url: %s\n", req.URL.String())
 	}
+}
+
+func (cli *HttpClient) useTimeout(req *http.Request) *http.Request {
+	if cli.timeout != 0 {
+		cli.ctx, cli.cancel = context.WithTimeout(context.Background(), cli.timeout)
+		return req.WithContext(cli.ctx)
+	}
+	return req
 }
 
 func Get(url string) *HttpClient {
